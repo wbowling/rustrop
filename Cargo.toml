@@ -6,3 +6,4 @@ authors = ["William Bowling <will@biteable.com>"]
 [dependencies]
 capstone = "0.2.0"
 elf = "0.0.10"
+ansi_term = "0.10.2"

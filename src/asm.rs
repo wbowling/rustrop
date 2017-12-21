@@ -2,11 +2,11 @@ extern crate capstone;
 
 use self::capstone::{Capstone, arch, Insn};
 use self::capstone::arch::{BuildsCapstone, BuildsCapstoneSyntax};
-use std::collections::HashSet;
+use std::collections::btree_set::BTreeSet;
 
 use gadget::Gadget;
 
-pub fn dis(bytes: &[u8], addr: u64, mut map:HashSet<Gadget>, num: usize) -> HashSet<Gadget>{
+pub fn dis(bytes: &[u8], addr: u64, mut map: BTreeSet<Gadget>, num: usize) -> BTreeSet<Gadget>{
     let cs: Capstone = Capstone::new()
         .x86()
         .mode(arch::x86::ArchMode::Mode64)
@@ -28,16 +28,14 @@ pub fn dis(bytes: &[u8], addr: u64, mut map:HashSet<Gadget>, num: usize) -> Hash
                     Ok(insns) => {
                         match insns.iter().last() {
                             Some(ref inst) if is_ret(inst) => {
-                                let mut key = String::new();
                                 let mut asm = Vec::new();
                                 for inst in insns.iter() {
-                                    key.push_str(&format!("{} {}\n", inst.mnemonic().unwrap_or(""), inst.op_str().unwrap_or("")));
                                     let done = is_ret(&inst);
                                     asm.push(inst);
                                     if done { break }
                                 }
 
-                                if asm.len() == num {
+                                if asm.len() <= num {
                                     let addr = asm.first().map({ |i| i.address() });
                                     if let Some(a) = addr {
                                         map.insert(Gadget::new(a, asm));
