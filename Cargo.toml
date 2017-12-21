@@ -1,0 +1,8 @@
+[package]
+name = "rustrop"
+version = "0.1.0"
+authors = ["William Bowling <will@biteable.com>"]
+
+[dependencies]
+capstone = "0.2.0"
+elf = "0.0.10"
