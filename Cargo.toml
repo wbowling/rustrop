@@ -7,3 +7,5 @@ authors = ["William Bowling <will@biteable.com>"]
 capstone = "0.2.0"
 elf = "0.0.10"
 ansi_term = "0.10.2"
+clap = "~2.29"
+regex = "0.2"
