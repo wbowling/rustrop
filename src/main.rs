@@ -13,7 +13,6 @@ mod prompt;
 use gadget::Gadget;
 
 fn main() {
-//    prompt::prompt();
     let matches = App::new("rustrop")
         .version("1.0")
         .author("William Bowling <will@wbowling.info>")
@@ -37,12 +36,6 @@ fn main() {
             .value_name("MIN")
             .help("The minimum length of the gadgets")
             .takes_value(true))
-        .arg(Arg::with_name("regex")
-            .short("r")
-            .long("regex")
-            .value_name("REGEX")
-            .help("Regex to filter instructions on")
-            .takes_value(true))
         .arg(Arg::with_name("duplicates")
             .short("d")
             .long("duplicates")
@@ -61,8 +54,6 @@ fn main() {
         .expect("Must be an int");
 
     let duplicates: bool = matches.is_present("duplicates");
-
-    let regex = matches.value_of("regex").map({|r| Regex::new(r).unwrap()});
 
     let path = PathBuf::from(file_arg);
     let file = match elf::File::open_path(&path) {
@@ -88,15 +79,20 @@ fn main() {
         }
     }
 
-
-    if let Some(reg) = regex {
-        instr = instr.into_iter().filter(|g| reg.is_match(&g.output)).collect();
-    }
-
-    instr.sort();
-    for entry in instr {
-        println!("{}", entry.color());
-    }
+    prompt::prompt(&|line: String| print_filtered(&instr, &line));
 }
 
-
+fn print_filtered(instr: &Vec<Gadget>, regex_str: &str) {
+    let res = Regex::new(regex_str);
+    match res {
+        Ok(regex) => {
+            let mut filtered: Vec<&Gadget> = Vec::new();
+            filtered = instr.iter().filter(|g| regex.is_match(&g.output)).collect();
+            filtered.sort();
+            for entry in filtered {
+                println!("{}", entry.color());
+            }
+        }
+        Err(e) => println!("Regex error {:?}", e)
+    }
+}
