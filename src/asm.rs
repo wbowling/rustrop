@@ -2,11 +2,13 @@ extern crate capstone;
 
 use self::capstone::{Capstone, arch, Insn};
 use self::capstone::arch::{BuildsCapstone, BuildsCapstoneSyntax};
-use std::collections::btree_set::BTreeSet;
+use std::collections::HashSet;
 
 use gadget::Gadget;
 
-pub fn dis(bytes: &[u8], addr: u64, mut map: BTreeSet<Gadget>, num: usize) -> BTreeSet<Gadget>{
+pub fn dis(bytes: &[u8], addr: u64, max: usize, min: usize) -> Vec<Gadget> {
+    let mut found = HashSet::new();
+    let mut list: Vec<Gadget> = Vec::new();
     let cs: Capstone = Capstone::new()
         .x86()
         .mode(arch::x86::ArchMode::Mode64)
@@ -15,9 +17,7 @@ pub fn dis(bytes: &[u8], addr: u64, mut map: BTreeSet<Gadget>, num: usize) -> BT
         .build().expect("err");
 
     for x in 0..bytes.len().into() {
-
-        if bytes[x] == 0xc3 || bytes[x] == 0xc2 {
-            for y in 0..(num*4) {
+            for y in 0..(max*4) {
                 let start = if x >= y {
                     x - y
                 } else {
@@ -35,10 +35,13 @@ pub fn dis(bytes: &[u8], addr: u64, mut map: BTreeSet<Gadget>, num: usize) -> BT
                                     if done { break }
                                 }
 
-                                if asm.len() <= num {
+                                if asm.len() >= min && asm.len() <= max {
                                     let addr = asm.first().map({ |i| i.address() });
                                     if let Some(a) = addr {
-                                        map.insert(Gadget::new(a, asm));
+                                        if !found.contains(&a) {
+                                            found.insert(a);
+                                            list.push(Gadget::new(a, asm));
+                                        }
                                     }
                                 }
 
@@ -50,8 +53,7 @@ pub fn dis(bytes: &[u8], addr: u64, mut map: BTreeSet<Gadget>, num: usize) -> BT
                 }
             }
         }
-    }
-    map
+    list
 }
 
 fn is_ret(inst: &Insn) -> bool {
