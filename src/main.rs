@@ -78,7 +78,7 @@ fn main() {
             instr.extend(asm::dis(section.data.as_slice(), section.shdr.addr, max, min));
         }
     }
-
+    instr.sort();
     prompt::prompt(&|line: String| print_filtered(&instr, &line));
 }
 
@@ -86,9 +86,7 @@ fn print_filtered(instr: &Vec<Gadget>, regex_str: &str) {
     let res = Regex::new(regex_str);
     match res {
         Ok(regex) => {
-            let mut filtered: Vec<&Gadget> = Vec::new();
-            filtered = instr.iter().filter(|g| regex.is_match(&g.output)).collect();
-            filtered.sort();
+            let filtered: Vec<&Gadget> = instr.iter().filter(|g| regex.is_match(&g.output)).collect();
             for entry in filtered {
                 println!("{}", entry.color());
             }
