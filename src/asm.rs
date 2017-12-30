@@ -27,10 +27,10 @@ pub fn dis(bytes: &[u8], addr: u64, max: usize, min: usize) -> Vec<Gadget> {
                 match cs.disasm_all(&bytes[start..(x + 1)], addr+start as u64) {
                     Ok(insns) => {
                         match insns.iter().last() {
-                            Some(ref inst) if is_ret(inst) => {
+                            Some(ref inst) if is_end(inst) => {
                                 let mut asm = Vec::new();
                                 for inst in insns.iter() {
-                                    let done = is_ret(&inst);
+                                    let done = is_end(&inst);
                                     asm.push(inst);
                                     if done { break }
                                 }
@@ -56,6 +56,18 @@ pub fn dis(bytes: &[u8], addr: u64, max: usize, min: usize) -> Vec<Gadget> {
     list
 }
 
+fn is_end(inst: &Insn) -> bool {
+ is_ret(inst) || is_jmp(inst) || is_call(inst)
+}
+
 fn is_ret(inst: &Insn) -> bool {
     inst.mnemonic().unwrap_or("").starts_with("ret")
+}
+
+fn is_jmp(inst: &Insn) -> bool {
+    inst.mnemonic().unwrap_or("").starts_with("j") && !inst.op_str().unwrap_or("").starts_with("0x")
+}
+
+fn is_call(inst: &Insn) -> bool {
+    inst.mnemonic().unwrap_or("").starts_with("call") && !inst.op_str().unwrap_or("").starts_with("0x")
 }
