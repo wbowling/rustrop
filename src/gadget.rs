@@ -40,6 +40,10 @@ impl Gadget {
 
         format!("{}: {}", offset, output.join("; "))
     }
+
+    pub fn len(&self) -> usize {
+        self.asm.len()
+    }
 }
 
 impl PartialEq for Gadget {
