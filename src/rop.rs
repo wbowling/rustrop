@@ -146,7 +146,7 @@ impl RustRop {
         let mut instr: Vec<Gadget> = Vec::new();
 
         for section in executable {
-            instr.extend(asm::dis(section.data.as_slice(), section.shdr.addr, self.depth));
+            instr.extend(asm::dis(file.ehdr, section.data.as_slice(), section.shdr.addr, self.depth));
         }
         instr.sort();
         println!("Done");
